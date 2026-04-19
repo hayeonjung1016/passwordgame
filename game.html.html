@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Password Game</title>
+
+<style>
+body {
+    margin: 0;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #ffffff;
+    font-family: sans-serif;
+    transition: background 0.3s;
+}
+
+#container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+#screen1, #screen2, #result {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#screen2, #result {
+    display: none;
+}
+
+#boxes, #gameBoxes {
+    display: flex;
+    gap: 12px;
+    margin: 20px;
+}
+
+.box {
+    width: 65px;
+    height: 65px;
+    border: 3px solid #333;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 30px;
+}
+
+button {
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+img {
+    margin: 20px 0;
+}
+</style>
+</head>
+
+<body>
+
+<div id="container">
+
+<!-- 🔵 첫 화면 -->
+<div id="screen1">
+    <h2>write 4 digit-number</h2>
+
+    <div id="boxes">
+      <div class="box" id="b0"></div>
+      <div class="box" id="b1"></div>
+      <div class="box" id="b2"></div>
+      <div class="box" id="b3"></div>
+    </div>
+
+    <button id="nextBtn" onclick="startGame()" style="display:none;">enter</button>
+</div>
+
+<!-- 🟢 게임 화면 -->
+<div id="screen2">
+    <h2>guess the password</h2>
+    <img id="lockImage" src="locks.png" width="150">
+
+    <div id="gameBoxes">
+      <div class="box" id="g0"></div>
+      <div class="box" id="g1"></div>
+      <div class="box" id="g2"></div>
+      <div class="box" id="g3"></div>
+    </div>
+
+    <p id="message"></p>
+    <p id="attempts"></p>
+</div>
+
+<!-- 🎉 결과 화면 -->
+<div id="result">
+    <img src="thanks.png" width="200">
+    <h2>Thank you</h2>
+</div>
+
+</div>
+
+<script>
+// -------- 첫 화면 --------
+let firstInput = "";
+
+document.addEventListener("keydown", function(e) {
+
+    if (document.getElementById("screen1").style.display !== "none") {
+
+        if (e.key >= "0" && e.key <= "9") {
+            if (firstInput.length < 4) {
+                firstInput += e.key;
+                updateBoxes();
+            }
+        }
+
+        if (e.key === "Backspace") {
+            firstInput = firstInput.slice(0, -1);
+            updateBoxes();
+        }
+
+    } else if (document.getElementById("screen2").style.display !== "none") {
+        handleGameInput(e);
+    }
+});
+
+function updateBoxes() {
+    for (let i = 0; i < 4; i++) {
+        document.getElementById("b" + i).textContent = firstInput[i] || "";
+    }
+
+    document.getElementById("nextBtn").style.display =
+        firstInput.length === 4 ? "block" : "none";
+}
+
+// -------- 게임 시작 --------
+let ANSWER = "";
+
+function startGame() {
+    ANSWER = firstInput;
+
+    document.getElementById("screen1").style.display = "none";
+    document.getElementById("screen2").style.display = "flex";
+}
+
+// -------- 게임 --------
+let currentInput = "";
+let count = 0;
+
+function handleGameInput(e) {
+
+    if (e.key >= "0" && e.key <= "9") {
+        if (currentInput.length < 4) {
+            currentInput += e.key;
+            updateGameBoxes();
+        }
+    }
+
+    if (e.key === "Backspace") {
+        currentInput = currentInput.slice(0, -1);
+        updateGameBoxes();
+    }
+
+    if (e.key === "Enter") {
+        checkGuess();
+    }
+}
+
+function updateGameBoxes() {
+    for (let i = 0; i < 4; i++) {
+        document.getElementById("g" + i).textContent = currentInput[i] || "";
+    }
+}
+
+// 색 효과
+function flashColor(color) {
+    const original = "#ffffff";
+
+    document.body.style.background = color;
+
+    setTimeout(() => {
+        document.body.style.background = original;
+    }, 500);
+}
+
+// 정답 체크
+function checkGuess() {
+    let message = document.getElementById("message");
+    let attempts = document.getElementById("attempts");
+    let img = document.getElementById("lockImage");
+
+    if (currentInput.length !== 4) {
+        message.textContent = "write 4 digit-number";
+        return;
+    }
+
+    count++;
+
+    if (currentInput === ANSWER) {
+        message.textContent = "correct!";
+        img.src = "unlock.png";
+        flashColor("#7CFC00");
+
+        // 🎉 결과 화면 전환
+        setTimeout(() => {
+            document.getElementById("screen2").style.display = "none";
+            document.getElementById("result").style.display = "flex";
+        }, 700);
+
+    } else {
+        message.textContent = "try again!";
+        flashColor("#ff4d4d");
+    }
+
+    if (count === 3 && currentInput !== ANSWER) {
+        message.textContent += " hint: " + ANSWER[0] + " _ _ _";
+    }
+
+    attempts.textContent = "try: " + count;
+
+    currentInput = "";
+    updateGameBoxes();
+}
+</script>
+
+</body>
+</html>             
